@@ -1,0 +1,376 @@
+# 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>茯见金香 · 冲泡体验</title>
+    <style>
+        /* ================= 基础色彩与全局设定 ================= */
+        :root {
+            --bg-color: #F4F1ED; /* 更有宣纸质感的背景色 */
+            --card-bg: #FFFFFF;
+            --primary-text: #1A1A1A;
+            --secondary-text: #7A7A7A;
+            --accent-gold: #D4AF37; /* 更明亮的高级金 */
+            --tea-dark: #3E2723; /* 沉稳的茶砖色 */
+            --tea-amber: #E65100; /* 浓郁的琥珀茶汤 */
+            --water-blue: #B3E5FC; 
+            --heat-red: rgba(216, 67, 21, 0.15);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: "PingFang SC", "Helvetica Neue", "Microsoft YaHei", serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 核心卡片容器 - 增加更柔和的阴影 */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card-bg);
+            border-radius: 28px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ================= 视觉展示区（新增漂浮金花粒子） ================= */
+        .visual-area {
+            height: 320px;
+            background: linear-gradient(135deg, #FAF8F5 0%, #F0EBE1 100%);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 全局漂浮的金花粒子（微观氛围） */
+        .spore {
+            position: absolute;
+            background: radial-gradient(circle, var(--accent-gold) 0%, rgba(212,175,55,0) 70%);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: floatSpore 6s infinite ease-in-out;
+            pointer-events: none;
+        }
+        .spore:nth-child(1) { width: 8px; height: 8px; left: 20%; top: 80%; animation-duration: 7s; }
+        .spore:nth-child(2) { width: 12px; height: 12px; left: 70%; top: 90%; animation-duration: 5s; animation-delay: 1s; }
+        .spore:nth-child(3) { width: 6px; height: 6px; left: 40%; top: 70%; animation-duration: 8s; animation-delay: 2s; }
+        .spore:nth-child(4) { width: 15px; height: 15px; left: 80%; top: 60%; animation-duration: 6s; opacity: 0.3; }
+
+        @keyframes floatSpore {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+        }
+
+        /* ================= 场景动画管理 ================= */
+        .scene {
+            display: none; 
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .scene.active { 
+            display: flex; 
+            animation: sceneFadeIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+        }
+
+        @keyframes sceneFadeIn { 
+            from { opacity: 0; transform: scale(0.95) translateY(10px); } 
+            to { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+
+        /* --- 场景0：封面 --- */
+        .logo-circle { 
+            width: 90px; height: 90px; 
+            border: 2px solid var(--accent-gold); 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--accent-gold); font-size: 32px; font-weight: bold; 
+            font-family: "Songti SC", serif;
+            box-shadow: 0 0 20px rgba(212,175,55,0.2);
+            position: relative;
+        }
+        .logo-circle::after {
+            content: ''; position: absolute; width: 110%; height: 110%;
+            border: 1px dashed rgba(212,175,55,0.5); border-radius: 50%;
+            animation: rotateDash 10s linear infinite;
+        }
+        @keyframes rotateDash { 100% { transform: rotate(360deg); } }
+
+        /* --- 场景1：撬茶（增加掉落碎屑） --- */
+        .tea-brick { width: 130px; height: 85px; background: var(--tea-dark); border-radius: 8px; position: relative; box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4); }
+        .tea-piece { width: 35px; height: 25px; background: var(--tea-dark); border-radius: 4px; position: absolute; right: -10px; top: 10px; opacity: 0; animation: pryTea 2.5s infinite; }
+        .needle { width: 70px; height: 3px; background: #B0BEC5; position: absolute; right: -45px; top: 20px; transform-origin: left center; animation: needleMove 2.5s infinite; border-radius: 2px;}
+        .crumb { width: 4px; height: 4px; background: var(--tea-dark); position: absolute; right: -5px; top: 35px; border-radius: 50%; opacity: 0; animation: fallCrumb 2.5s infinite; }
+        .crumb:nth-child(4) { width: 3px; right: 5px; animation-delay: 0.2s; }
+
+        @keyframes needleMove { 0%, 100% { transform: rotate(-25deg) translateX(10px); } 50% { transform: rotate(5deg) translateX(-10px); } }
+        @keyframes pryTea { 0%, 40% { opacity: 0; transform: translate(0, 0); } 50%, 80% { opacity: 1; transform: translate(20px, -20px) rotate(20deg); } 100% { opacity: 0; } }
+        @keyframes fallCrumb { 0%, 50% { opacity: 0; transform: translateY(0); } 60% { opacity: 1; } 90% { opacity: 0; transform: translateY(40px) translateX(10px); } 100% { opacity: 0;} }
+
+        /* --- 场景2：温壶（增加加热红光） --- */
+        .teapot { width: 90px; height: 65px; background: #F5F5F5; border-radius: 25px; border: 3px solid #CFD8DC; position: relative; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.05); z-index: 2;}
+        .teapot::before { content: ''; position: absolute; left: -22px; top: 18px; width: 22px; height: 12px; border: 3px solid #CFD8DC; border-right: none; border-radius: 12px 0 0 12px; }
+        .teapot::after { content: ''; position: absolute; right: -16px; top: 22px; width: 16px; height: 12px; background: #CFD8DC; border-radius: 0 10px 10px 0; }
+        .heat-glow { width: 60px; height: 20px; background: var(--heat-red); position: absolute; bottom: -10px; border-radius: 50%; filter: blur(8px); animation: pulseHeat 2s infinite; }
+        
+        .steam-group { position: absolute; top: -40px; display: flex; gap: 12px; z-index: 1;}
+        .steam { width: 6px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 3px; animation: rise 2s infinite ease-in; filter: blur(3px); }
+        .steam:nth-child(2) { animation-delay: 0.6s; height: 30px;}
+        .steam:nth-child(3) { animation-delay: 1.2s; }
+
+        @keyframes pulseHeat { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        @keyframes rise { 0% { transform: translateY(15px) scaleX(1); opacity: 0; } 40% { opacity: 0.7; } 100% { transform: translateY(-30px) scaleX(2); opacity: 0; } }
+
+        /* --- 场景3：注水（增加内在金花闪现） --- */
+        .water-stream { width: 6px; height: 40px; background: var(--water-blue); border-radius: 3px; position: absolute; top: -50px; animation: pourWater 2s infinite; }
+        .tea-infusion { width: 80px; height: 45px; background: linear-gradient(to bottom, #FFB74D, var(--tea-amber)); position: absolute; bottom: 4px; left: 5px; border-radius: 0 0 20px 20px; opacity: 0; animation: infuse 3s forwards; overflow: hidden;}
+        .gold-sparkle { width: 4px; height: 4px; background: #FFF; box-shadow: 0 0 5px var(--accent-gold); position: absolute; border-radius: 50%; animation: sparkle 2s infinite; }
+        
+        @keyframes pourWater { 0% { transform: translateY(0) scaleY(0); opacity: 1; transform-origin: top; } 30% { transform: translateY(0) scaleY(1); opacity: 1; } 70% { transform: translateY(45px) scaleY(0); opacity: 0; transform-origin: bottom;} 100% { opacity: 0; } }
+        @keyframes infuse { 0% { opacity: 0; height: 5px; } 100% { opacity: 0.85; height: 45px; } }
+        @keyframes sparkle { 0%, 100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1.5); } }
+
+        /* --- 场景4：醒茶（增加飞溅水花） --- */
+        .pour-wrapper { position: relative; width: 180px; height: 190px; }
+        .pour-teapot { width: 65px; height: 50px; background: #F5F5F5; border-radius: 18px; border: 3px solid #CFD8DC; position: absolute; right: 10px; top: 20px; transform: rotate(-35deg); transform-origin: center; z-index: 3; }
+        .pour-teapot::before { content: ''; position: absolute; left: -20px; top: 12px; width: 20px; height: 10px; border: 3px solid #CFD8DC; border-right: none; border-radius: 10px 0 0 10px; }
+        .pour-teapot::after { content: ''; position: absolute; right: -12px; top: 18px; width: 12px; height: 10px; background: #CFD8DC; border-radius: 0 10px 10px 0; }
+
+        .pour-stream { width: 5px; height: 65px; background: linear-gradient(to bottom, #FFCA28, var(--tea-amber)); position: absolute; left: 81px; top: 60px; border-radius: 2px; animation: flowing 1.2s infinite ease-in-out; transform-origin: top center; z-index: 1; }
+        
+        .cup { width: 55px; height: 45px; border: 3px solid #CFD8DC; border-top: none; border-radius: 0 0 20px 20px; position: absolute; left: 53px; bottom: 25px; z-index: 2; background: var(--card-bg); }
+        .cup-water { width: 49px; height: 25px; background: linear-gradient(to bottom, #FFCA28, var(--tea-amber)); position: absolute; bottom: 3px; left: 3px; border-radius: 0 0 16px 16px; opacity: 0.8; }
+        
+        /* 飞溅水花 */
+        .splash { width: 8px; height: 8px; background: var(--tea-amber); position: absolute; left: 79px; bottom: 45px; border-radius: 50%; opacity: 0; z-index: 4; animation: splashing 1.2s infinite; }
+
+        .label-tag { position: absolute; left: 125px; bottom: 35px; background: var(--accent-gold); color: #FFF; padding: 6px 14px; border-radius: 15px; font-size: 13px; font-weight: bold; box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4); animation: floatLabel 2.5s ease-in-out infinite; white-space: nowrap; z-index: 4; letter-spacing: 1px;}
+
+        @keyframes flowing { 0% { opacity: 0.6; transform: scaleX(0.8); } 50% { opacity: 1; transform: scaleX(1.1); } 100% { opacity: 0.6; transform: scaleX(0.8); } }
+        @keyframes splashing { 0% { opacity: 0; transform: translateY(0) scale(0.5); } 30% { opacity: 0.8; transform: translateY(-10px) translateX(-8px) scale(1); } 100% { opacity: 0; transform: translateY(5px) translateX(-12px); } }
+        @keyframes floatLabel { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+        /* ================= 文本与控制区 ================= */
+        .content-area {
+            padding: 35px 30px;
+            text-align: center;
+            background: #FFF;
+            border-radius: 28px 28px 0 0;
+            margin-top: -20px; /* 制造叠加层次感 */
+            position: relative;
+            z-index: 20;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.02);
+        }
+
+        .step-indicator {
+            font-size: 13px;
+            color: var(--accent-gold);
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-text);
+            margin: 0 0 16px 0;
+            font-family: "Songti SC", serif; /* 标题使用宋体增加文化感 */
+        }
+
+        .description {
+            font-size: 14px;
+            color: var(--secondary-text);
+            line-height: 1.7;
+            height: 65px; 
+            margin-bottom: 25px;
+            transition: opacity 0.5s;
+        }
+
+        /* 进度指示圆点 */
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+        .dot {
+            width: 6px; height: 6px;
+            background: #E0E0E0;
+            border-radius: 50%;
+            transition: all 0.4s ease;
+        }
+        .dot.active {
+            width: 18px;
+            background: var(--accent-gold);
+            border-radius: 4px;
+        }
+
+        /* 按钮交互升级 */
+        .btn {
+            background-color: var(--primary-text);
+            color: #FFF;
+            border: none;
+            padding: 16px 0;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: 100%;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            outline: none;
+        }
+        .btn:hover { background-color: var(--accent-gold); box-shadow: 0 8px 20px rgba(212,175,55,0.3); transform: translateY(-2px); }
+        .btn:active { transform: translateY(1px) scale(0.98); }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="visual-area">
+            
+            <div class="spore"></div>
+            <div class="spore"></div>
+            <div class="spore"></div>
+            <div class="spore"></div>
+            
+            
+            <div class="scene active" id="scene-0">
+                <div class="logo-circle">茯</div>
+            </div>
+
+            
+            <div class="scene" id="scene-1">
+                <div class="tea-brick">
+                    <div class="tea-piece"></div>
+                    <div class="needle"></div>
+                    <div class="crumb"></div>
+                    <div class="crumb"></div>
+                </div>
+            </div>
+
+            
+            <div class="scene" id="scene-2">
+                <div class="steam-group">
+                    <div class="steam"></div>
+                    <div class="steam"></div>
+                    <div class="steam"></div>
+                </div>
+                <div class="teapot"></div>
+                <div class="heat-glow"></div>
+            </div>
+
+            
+            <div class="scene" id="scene-3">
+                <div class="water-stream"></div>
+                <div class="teapot">
+                    <div class="tea-infusion">
+                        
+                        <div class="gold-sparkle" style="top:20px; left:20px; animation-delay: 0.5s;"></div>
+                        <div class="gold-sparkle" style="top:10px; left:50px; animation-delay: 1.2s;"></div>
+                        <div class="gold-sparkle" style="top:30px; left:60px; animation-delay: 2s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="scene" id="scene-4">
+                <div class="pour-wrapper">
+                    <div class="pour-teapot"></div>
+                    <div class="pour-stream"></div>
+                    <div class="splash"></div>
+                    <div class="cup">
+                        <div class="cup-water"></div>
+                    </div>
+                    
+                    <div class="label-tag">醒茶水不饮</div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="content-area">
+            <div class="step-indicator" id="step-indicator">东方新茶饮</div>
+            <h2 class="title" id="step-title">茯见金香 · 冲泡艺术</h2>
+            
+            
+            <div class="progress-dots" id="progress-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <p class="description" id="step-desc">探索泾阳茯茶与金花菌的微观魅力，体验传统非遗冲泡工艺的现代重塑。</p>
+            <button class="btn" id="next-btn" onclick="nextStep()">开始冲泡体验</button>
+        </div>
+    </div>
+
+    
+    <script>
+        const stepsData = [
+            { indicator: "序章 · 寻香", title: "茯见金香 · 冲泡艺术", desc: "探索泾阳茯茶与金花菌的微观魅力，体验传统非遗冲泡工艺的现代重塑。", btnText: "开启寻茶之旅" },
+            { indicator: "STEP 1 · 解构", title: "第一步：撬茶取金", desc: "顺应茶砖纹理，以茶针轻撬。切勿用力过猛，以完整保留内部璀璨如星的“金花”菌落。", btnText: "下一步：温壶聚气" },
+            { indicator: "STEP 2 · 蓄势", title: "第二步：温热茶器", desc: "沸水注入空壶。瓷器升温，不仅能洗净前尘，更能为后续瞬间激发菌花香做好温度的铺垫。", btnText: "下一步：投茶注水" },
+            { indicator: "STEP 3 · 苏醒", title: "第三步：沸水唤花", desc: "投入茶块，百指高悬，沸水倾注。在高温的拥抱下，沉睡的金花菌渐渐苏醒，释放独特菌香。", btnText: "下一步：加盖醒茶" },
+            { indicator: "STEP 4 · 纯粹", title: "第四步：滤尘醒茶", desc: "润泡数秒后迅速出汤。此杯“醒茶水”只为洗去岁月浮尘、彻底唤醒茶底，敬天敬地，不作饮用。", btnText: "重温冲泡艺术" }
+        ];
+
+        let currentStep = 0;
+
+        function nextStep() {
+            // 文本淡出过渡效果
+            const descEl = document.getElementById('step-desc');
+            descEl.style.opacity = '0';
+
+            setTimeout(() => {
+                // 切换场景
+                document.getElementById(`scene-${currentStep}`).classList.remove('active');
+                currentStep = (currentStep + 1) % stepsData.length;
+                
+                const nextScene = document.getElementById(`scene-${currentStep}`);
+                void nextScene.offsetWidth; // 触发重绘
+                nextScene.classList.add('active');
+
+                // 更新文本内容
+                document.getElementById('step-indicator').textContent = stepsData[currentStep].indicator;
+                document.getElementById('step-title').textContent = stepsData[currentStep].title;
+                descEl.textContent = stepsData[currentStep].desc;
+                document.getElementById('next-btn').textContent = stepsData[currentStep].btnText;
+                
+                // 文本淡入
+                descEl.style.opacity = '1';
+
+                // 更新进度小圆点
+                const dots = document.querySelectorAll('.dot');
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentStep);
+                });
+
+            }, 200); // 配合 CSS 动画的时间差
+        }
+    </script>
+</body>
+</html>
